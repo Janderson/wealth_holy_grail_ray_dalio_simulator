@@ -14,29 +14,35 @@ def corr2cov(p: np.ndarray, s: np.ndarray) -> np.ndarray:
     return d @ p @ d
 
 
-def plotter(dataframe, show_chart=True):
-    plt.figure(figsize=(12, 5))
+def plotter(dataframe, risk=0.1, n_assets=21, show_chart=True):
+    plt.figure(figsize=(15, 5))
     plt.plot(dataframe)
     plt.title("The Holy Grail of Ray Dalio")
     plt.legend(dataframe.columns)
     plt.xlabel("# of Assets/Alphas in Portfolio")
     plt.ylabel("Annual Portfolio Std.Deviation")
+    plt.xticks(list(range(0, n_assets-1)))
+    #plt.yticks(np.arange(risk, 0, -0.1))
+    print(f"showchart: {show_chart}")
     if show_chart:
         plt.show()
     else:
         plt.savefig("simulator-holy-grail-result.png")
 
+def build_fraction_list(correlations):
+    divisor = 100
+    return [(corr/divisor) for corr in correlations]
 
-def simulator():
-    print(f"Simulator of Ray Dalio 'Holy Grail' built by: {AUTHOR}")
+
+def transform_input_correlations(correlations_str):
+    return [int(item) for item in correlations_str.split(",")]
+
+
+def simulator(correlations, param_risk=.10):
+    param_means = param_stddev = param_risk
     df = pd.DataFrame()
-    mean_assets = .1
-    stddev_assets = .1
-
-    correlation_test_list = [
-        .60, .40, .20, .10, 0
-    ]
-    for correlation in correlation_test_list:
+    results = []
+    for correlation in build_fraction_list(correlations):
         result_list = []
         for num_assets in range(1, 21):
             corr_matrix = np.zeros((num_assets, num_assets), float)
@@ -44,9 +50,9 @@ def simulator():
             np.fill_diagonal(corr_matrix, 1)
 
             stddev = np.empty(num_assets, dtype='float')
-            stddev.fill(stddev_assets)
+            stddev.fill(param_stddev)
             mean = np.empty(num_assets, dtype='float')
-            mean.fill(mean_assets)
+            mean.fill(param_means)
 
             cov = corr2cov(corr_matrix, stddev)
 
@@ -60,9 +66,12 @@ def simulator():
             portfolio_risk = np.std(portfolio_returns)
 
             result_list.append(portfolio_risk)
-            print(f"c: {correlation}"
-                  f"assets: {num_assets}"
-                  f"risk: {portfolio_risk:.5f}")
+            result = {
+                "assets": num_assets,
+                "correlation": correlation,
+                "risk": portfolio_risk
+            }
+            results.append(result)
 
         df.insert(0, 'correlation: ' + str(correlation), result_list, True)
     return df
@@ -70,10 +79,14 @@ def simulator():
 
 @click.command("simulator")
 @click.option("--savefigure", default=False)
-def cmd_simulator(savefigure):
-    result_df = simulator()
-    print(result_df.tail())
-    plotter(result_df, show_chart=savefigure)
+@click.option("--correlations", default="60,40,20,10,0")
+@click.option("--risk", default=10)
+def cmd_simulator(savefigure, correlations, risk):
+    print(f"Simulator of Ray Dalio 'Holy Grail' built by: {AUTHOR}")
+    result_df = simulator(transform_input_correlations(correlations),
+                          param_risk=float(risk)/100)
+    #print(result_df.tail())
+    plotter(result_df, show_chart=(not savefigure))
 
 
 if __name__ == "__main__":
