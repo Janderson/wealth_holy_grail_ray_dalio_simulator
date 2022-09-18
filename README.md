@@ -21,5 +21,8 @@ python simulator.py --correlations 10,20,30,40,50,60 --risk 20
 ### Example of results:
 ![simulator-result](simulator-holy-grail-result.png)
 
+### result of original:
+![simulator-result](202209-ray-dalio-investements-holy-grail.png)
 
-resource: https://dvcadmael.com/blog/the-holy-grail-dalio.html
+
+resource: https://dvcadmael.com/blog/the-holy-grail-dalio.html (thanks mate!)
