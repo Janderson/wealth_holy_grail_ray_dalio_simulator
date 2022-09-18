@@ -8,4 +8,8 @@
 python simulator.py --savefigure False
 ```
 
+### result:
+!(simulator-result)[simulator-holy-grail-result.png]
+
+
 resource: https://dvcadmael.com/blog/the-holy-grail-dalio.html
